@@ -1,9 +1,22 @@
 const Discord = require('discord.js');
 const client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL'] });
 
+const COOL_DOWN = 60 * 60 * 1000;
+const GCD = new Set();
+function getLock(userID) {
+  if (GCD.has(userID)) return false;
+
+  GCD.add(userID);
+  setTimeout(() => GCD.delete(userID), COOL_DOWN);
+
+  return true;
+}
+
 client.on('ready', () => console.info('ready'));
 
-client.on('messageReactionAdd', async reaction => {
+client.on('messageReactionAdd', async (reaction, user) => {
+  if (!getLock(user.id)) return;
+
   const msg = reaction.message;
   const emoji = reaction._emoji.name;
   if (emoji !== '🇾') return;
